@@ -1,0 +1,66 @@
+version: "3"
+
+services:
+  airflow:
+    image: puckel/docker-airflow:latest
+    container_name: airflow
+    volumes:
+      - ./airflow/config/airflow.cfg:/usr/local/airflow/airflow.cfg
+      - ./airflow/config/requirements.txt:/requirements.txt
+      - ./airflow/dags:/usr/local/airflow/dags
+    environment:
+      - LOAD_EX=n
+      - FERNET_KEY=PZWuC9gPvJYA0V885mH-YUYniTvEmJdXDUICptaGp5c=
+    depends_on:
+      - mysql
+      - redis
+    ports:
+      - 8080:8080
+    restart: always
+
+  superset:
+    image: amancevice/superset:latest
+    container_name: superset
+    volumes:
+      - ./superset/superset_config.py:/etc/superset/superset_config.py
+    environment:
+      MAPBOX_API_KEY: ${MAPBOX_API_KEY}
+    depends_on:
+      - mysql
+      - redis
+    ports:
+      - "8088:8088"
+    restart: always
+
+  mysql:
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    image: mysql:5.7
+    container_name: mysql 
+    environment:
+      MYSQL_DATABASE: superset
+      MYSQL_PASSWORD: superset
+      MYSQL_USER: superset
+      MYSQL_ROOT_PASSWORD: superset
+    volumes:
+      - ./mysql:/var/lib/mysql
+    ports:
+      - 3306:3306
+    restart: always
+
+  Mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    ports: 
+      - 1025:1025 # smtp server
+      - 8025:8025
+    restart: always
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    volumes:
+      - redis:/data
+    restart: always
+
+volumes:
+  redis:

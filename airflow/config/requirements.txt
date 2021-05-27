@@ -1,0 +1,2 @@
+apache-airflow[password]
+flask_bcrypt
